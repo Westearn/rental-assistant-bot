@@ -6,15 +6,15 @@ from app.middlewares.auth import AuthMiddleware
 from app.handlers import start, apartments, sets
 from app.notifications.scheduler import setup_scheduler
 
-from app.database.db import engine
-from app.database.models import Base
+# from app.database.db import engine
+# from app.database.models import Base
 
 
 async def main():
-    # Создание таблиц в БД (если их еще нет)
-    async with engine.begin() as conn:
-        # создание таблиц в БД с использованием SQLAlchemy
-        await conn.run_sync(Base.metadata.create_all)
+    # # Создание таблиц в БД (если их еще нет)
+    # async with engine.begin() as conn:
+    #     # создание таблиц в БД с использованием SQLAlchemy
+    #     await conn.run_sync(Base.metadata.create_all)
     
     bot = Bot(token=settings.bot_token)
     dp = Dispatcher()

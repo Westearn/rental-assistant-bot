@@ -48,10 +48,8 @@ async def select_apartment(call: CallbackQuery):
 
 @router.callback_query(F.data == "settings_tariffs")
 async def select_apartment(call: CallbackQuery):
-    # Отвечаем на колбэк, убираем анимацию загрузки кнопки
     await call.answer() 
 
-    # Получаем список тарифов из базы
     async with SessionLocal() as session:
         tariffService = TariffService(session)
         tariffs = await tariffService.get_all_tariffs()
@@ -65,10 +63,8 @@ async def select_apartment(call: CallbackQuery):
 
 @router.callback_query(F.data == "back")
 async def back_to_settings(call: CallbackQuery):
-    # Отвечаем на колбэк, убираем анимацию загрузки кнопки
     await call.answer()
 
-    # Редактируем сообщение, возвращая клавиатуру настроек
     await call.message.edit_text(
         text="Выберите необходимые настройки",
         reply_markup=settings_keyboard())
@@ -76,7 +72,6 @@ async def back_to_settings(call: CallbackQuery):
 
 @router.callback_query(F.data.startswith("tar_"))
 async def start_edit_tariff(call: CallbackQuery, state: FSMContext):
-    # Отвечаем на колбэк, убираем анимацию загрузки кнопки
     await call.answer()
     
     # Извлекаем ID из callback_data (tar_1 -> 1)
@@ -90,8 +85,7 @@ async def start_edit_tariff(call: CallbackQuery, state: FSMContext):
     await state.update_data(
             edit_tariff_id=tariff.id,
             edit_tariff_name=tariff.name,
-            edit_tariff_old_value=tariff.value
-        )
+            edit_tariff_old_value=tariff.value)
     
     await call.message.edit_text(f"Введите новое значение для тарифа {tariff.name} ({tariff.value} ₽):")
     await state.set_state(TariffEditState.waiting_for_value)
@@ -100,11 +94,15 @@ async def start_edit_tariff(call: CallbackQuery, state: FSMContext):
 @router.message(TariffEditState.waiting_for_value)
 async def process_new_tariff_value(message: Message, state: FSMContext):
     # Проверяем, что введено число
-    new_value = message.text.replace(",", ".") # Заменяем запятую на точку для float
+    new_value = message.text.strip().replace(",", ".") # Заменяем запятую на точку для float
     try:
         new_value = float(new_value)
     except ValueError:
         await message.answer("Пожалуйста, введите корректное число (например, 5.45)")
+        return
+
+    if new_value <= 0:
+        await message.answer("Значение тарифа должно быть положительным числом.")
         return
 
     # Достаем данные тарифа, которые мы сохранили ранее
@@ -122,8 +120,7 @@ async def process_new_tariff_value(message: Message, state: FSMContext):
         logService = LogService(session)
         await logService.log(
             user=message.from_user.full_name,
-            action=f"Тариф \"{t_name}\" успешно обновлен до {new_value} ₽. Старое значение {t_old_val} ₽"
-        )
+            action=f"Тариф \"{t_name}\" успешно обновлен до {new_value} ₽. Старое значение {t_old_val} ₽")
 
         await session.commit()
 
