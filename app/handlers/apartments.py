@@ -19,7 +19,9 @@ from app.services.utils import clear_buttons
 
 router = Router()
 
-
+# ---------------------------
+# ВЫБОР КВАРТИРЫ
+# ---------------------------
 @router.message(F.text == "🏢 Выбор квартиры")
 async def process_apartment_choice(message: Message, state: FSMContext):
     current_state = await state.get_state()
@@ -35,7 +37,7 @@ async def process_apartment_choice(message: Message, state: FSMContext):
         reply_markup=apartments_keyboard(apartments))
 
 # ---------------------------
-# ВЫБОР КВАРТИРЫ
+# ДЕЙСТВИЯ С КВАРТИРОЙ
 # ---------------------------
 @router.callback_query(F.data.startswith("apt_"))
 async def select_apartment(call: CallbackQuery, state: FSMContext):
@@ -286,8 +288,10 @@ async def call_comment(call: CallbackQuery, state: FSMContext):
         apartment = await service.get_apartment(apartment_id)
 
     await state.set_state(CommentState.comment)
-    sent_message = await call.message.edit_text("Введите актуальную заметку:",
-                                 reply_markup=copy_keyboard("Скопировать текущую заметку", f"{apartment.comment}"))
+    sent_message = await call.message.edit_text(f"Текущая заметка: {apartment.comment}\n\n"
+                                                "*Введите актуальную заметку:*",
+                                                reply_markup=copy_keyboard("Скопировать текущую заметку", f"{apartment.comment}",
+                                                parse_mode="Markdown"))
     
     await state.update_data(msg_to_edit=sent_message.message_id)
 

@@ -23,7 +23,9 @@ async def process_apartment_choice(message: Message, state: FSMContext):
         text="Выберите необходимые настройки",
         reply_markup=settings_keyboard())
 
-
+# ---------------------------
+# Информация о тарифах
+# ---------------------------
 @router.callback_query(F.data == "info_tariffs")
 async def select_apartment(call: CallbackQuery):
     # Отвечаем на колбэк, убираем анимацию загрузки кнопки
@@ -45,7 +47,9 @@ async def select_apartment(call: CallbackQuery):
         parse_mode="Markdown" # Чтобы работал жирный шрифт (**)
     )
 
-
+# ---------------------------
+# Информация о тарифах - Редактирование
+# ---------------------------
 @router.callback_query(F.data == "settings_tariffs")
 async def select_apartment(call: CallbackQuery):
     await call.answer() 
@@ -60,7 +64,9 @@ async def select_apartment(call: CallbackQuery):
         reply_markup=tariffs_keyboard(tariffs) # Ваша новая клавиатура
     )    
 
-
+# ---------------------------
+# Кнопка "Назад" в меню настроек тарифов
+# ---------------------------
 @router.callback_query(F.data == "back")
 async def back_to_settings(call: CallbackQuery):
     await call.answer()
@@ -69,7 +75,9 @@ async def back_to_settings(call: CallbackQuery):
         text="Выберите необходимые настройки",
         reply_markup=settings_keyboard())
 
-
+# ---------------------------
+# Редактирование тарифов - обработка выбора тарифа для редактирования
+# ---------------------------
 @router.callback_query(F.data.startswith("tar_"))
 async def start_edit_tariff(call: CallbackQuery, state: FSMContext):
     await call.answer()
@@ -90,7 +98,9 @@ async def start_edit_tariff(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(f"Введите новое значение для тарифа {tariff.name} ({tariff.value} ₽):")
     await state.set_state(TariffEditState.waiting_for_value)
 
-
+# ---------------------------
+# Редактирование тарифов - обработка ввода нового значения тарифа
+# ---------------------------
 @router.message(TariffEditState.waiting_for_value)
 async def process_new_tariff_value(message: Message, state: FSMContext):
     # Проверяем, что введено число
